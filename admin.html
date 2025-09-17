@@ -10,11 +10,12 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 20px;
     }
     .container {
-      width: 500px;
+      width: 600px;
       background: white;
       padding: 25px;
       border-radius: 12px;
@@ -24,6 +25,13 @@
       text-align: center;
       margin-bottom: 20px;
       color: #4f46e5;
+    }
+    .photo-entry {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #fdfdfd;
     }
     label {
       display: block;
@@ -47,9 +55,17 @@
       cursor: pointer;
       font-size: 1rem;
       width: 100%;
+      margin-top: 10px;
     }
     button:hover {
       background: #3730a3;
+    }
+    .small-btn {
+      background: #10b981;
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      width: auto;
+      margin-bottom: 10px;
     }
     .output {
       margin-top: 20px;
@@ -64,39 +80,63 @@
 <body>
   <div class="container">
     <h2>Admin Helper - CastroGallery</h2>
-    <label for="photo">Choose Photo</label>
-    <input type="file" id="photo" accept="image/*">
+    
+    <div id="photo-container">
+      <!-- Photo entries will appear here -->
+    </div>
 
-    <label for="description">Photo Description</label>
-    <textarea id="description" rows="3" placeholder="Write a description..."></textarea>
-
-    <button onclick="generateJSON()">Generate JSON Entry</button>
+    <button class="small-btn" onclick="addPhotoEntry()">+ Add Another Photo</button>
+    <button onclick="generateJSON()">Generate JSON</button>
 
     <div class="output" id="output"></div>
   </div>
 
   <script>
-    function generateJSON() {
-      const photoInput = document.getElementById("photo");
-      const description = document.getElementById("description").value.trim();
-      const outputDiv = document.getElementById("output");
+    let entryCount = 0;
 
-      if (!photoInput.files.length || !description) {
-        alert("Please select a photo and write a description.");
-        return;
+    function addPhotoEntry() {
+      entryCount++;
+      const container = document.getElementById("photo-container");
+
+      const entryDiv = document.createElement("div");
+      entryDiv.classList.add("photo-entry");
+      entryDiv.innerHTML = `
+        <label for="photo-${entryCount}">Choose Photo</label>
+        <input type="file" id="photo-${entryCount}" accept="image/*">
+
+        <label for="description-${entryCount}">Photo Description</label>
+        <textarea id="description-${entryCount}" rows="3" placeholder="Write a description..."></textarea>
+      `;
+      container.appendChild(entryDiv);
+    }
+
+    function generateJSON() {
+      const entries = [];
+      for (let i = 1; i <= entryCount; i++) {
+        const photoInput = document.getElementById("photo-" + i);
+        const description = document.getElementById("description-" + i).value.trim();
+
+        if (photoInput && photoInput.files.length && description) {
+          const fileName = photoInput.files[0].name;
+          const filePath = "photos/" + fileName;
+
+          entries.push({
+            url: filePath,
+            description: description
+          });
+        }
       }
 
-      // Only get file name, not full local path
-      const fileName = photoInput.files[0].name;
-      const filePath = "photos/" + fileName;
-
-      const jsonEntry = {
-        url: filePath,
-        description: description
-      };
-
-      outputDiv.textContent = JSON.stringify(jsonEntry, null, 2);
+      const outputDiv = document.getElementById("output");
+      if (entries.length === 0) {
+        outputDiv.textContent = "No valid entries provided.";
+      } else {
+        outputDiv.textContent = JSON.stringify(entries, null, 2);
+      }
     }
+
+    // Add first entry on load
+    window.onload = addPhotoEntry;
   </script>
 </body>
 </html>
