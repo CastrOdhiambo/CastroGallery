@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CastroGallery Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {font-family: Arial, sans-serif; margin: 20px; background: #f9fafb; color: #333;}
+    h1 {text-align: center; color: #2c3e50;}
+    .form {max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px;
+           box-shadow: 0 4px 15px rgba(0,0,0,0.1);}
+    input, textarea, button {
+      width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 14px;
+    }
+    button {background: #2c3e50; color: #fff; cursor: pointer; transition: background 0.3s ease;}
+    button:hover {background: #1a242f;}
+    .gallery-list {margin-top: 20px;}
+    .entry {
+      display: flex; align-items: center; gap: 15px; background: #f1f5f9; padding: 10px;
+      border-radius: 8px; margin-bottom: 10px;
+    }
+    .entry img {width: 80px; height: 60px; object-fit: cover; border-radius: 5px;}
+    .entry p {margin: 0; flex: 1;}
+    .entry button {background: crimson; font-size: 12px;}
+    .output {margin-top: 20px; background: #f1f5f9; padding: 15px; border-radius: 8px;
+             font-family: monospace; font-size: 14px; white-space: pre-wrap;}
+  </style>
+</head>
+<body>
+  <h1>CastroGallery Admin</h1>
+  <div class="form">
+    <label>Photo URL (e.g., photos/photo1.jpg)</label>
+    <input type="text" id="url" placeholder="Enter photo path...">
+
+    <label>Description</label>
+    <textarea id="desc" rows="3" placeholder="Enter photo description..."></textarea>
+
+    <button onclick="addPhoto()">➕ Add Photo</button>
+    <button onclick="downloadJSON()">💾 Download JSON</button>
+
+    <div class="gallery-list" id="galleryList"></div>
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    let photos = [];
+
+    function addPhoto() {
+      let url = document.getElementById("url").value.trim();
+      let desc = document.getElementById("desc").value.trim();
+
+      if (!url || !desc) {
+        alert("Please enter both URL and description.");
+        return;
+      }
+
+      let entry = { "url": url, "description": desc };
+      photos.push(entry);
+
+      renderList();
+      updateOutput();
+
+      document.getElementById("url").value = "";
+      document.getElementById("desc").value = "";
+    }
+
+    function renderList() {
+      let list = document.getElementById("galleryList");
+      list.innerHTML = "";
+      photos.forEach((p, i) => {
+        list.innerHTML += `
+          <div class="entry">
+            <img src="${p.url}" alt="${p.description}">
+            <p>${p.description}</p>
+            <button onclick="removePhoto(${i})">Delete</button>
+          </div>
+        `;
+      });
+    }
+
+    function removePhoto(index) {
+      photos.splice(index, 1);
+      renderList();
+      updateOutput();
+    }
+
+    function updateOutput() {
+      document.getElementById("output").textContent = JSON.stringify(photos, null, 2);
+    }
+
+    function downloadJSON() {
+      let blob = new Blob([JSON.stringify(photos, null, 2)], { type: "application/json" });
+      let link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "photos.json";
+      link.click();
+    }
+  </script>
+</body>
+</html>
