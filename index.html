@@ -4,198 +4,188 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CastroGallery</title>
+
+  <!-- SEO Meta -->
+  <meta name="description" content="CastroGallery - Explore my personal photo gallery with downloadable images.">
+  <meta name="keywords" content="photo gallery, images, photography, CastroGallery, downloads">
+  <meta name="author" content="Your Name">
+
+  <!-- Open Graph (Facebook, WhatsApp) -->
+  <meta property="og:title" content="CastroGallery">
+  <meta property="og:description" content="Explore my collection of photos, available for download.">
+  <meta property="og:image" content="photos/cover.jpg">
+  <meta property="og:url" content="https://yourwebsite.github.io/">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CastroGallery">
+  <meta name="twitter:description" content="Explore my photo collection, free to view and download.">
+  <meta name="twitter:image" content="photos/cover.jpg">
+
+  <!-- Preload critical assets -->
+  <link rel="preload" as="style" href="styles.css">
+
   <style>
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-family: Arial, sans-serif;
       margin: 0;
       background: #f9fafb;
       color: #111827;
     }
+
     header {
-      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      background: #4f46e5;
       color: white;
-      padding: 20px;
+      padding: 15px 20px;
       text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
+
     header h1 {
       margin: 0;
-      font-size: 2rem;
+      font-size: 1.5rem;
     }
-    .search-bar {
-      margin-top: 15px;
-      display: flex;
-      justify-content: center;
+
+    .search-container {
+      margin-top: 10px;
     }
-    .search-bar input {
-      width: 80%;
-      max-width: 500px;
+
+    .search-container input {
+      width: 100%;
+      max-width: 400px;
       padding: 10px;
       border-radius: 8px;
       border: none;
       font-size: 1rem;
     }
-    main {
-      padding: 20px;
-    }
+
     .gallery {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
+      gap: 16px;
+      padding: 20px;
     }
-    .card {
+
+    .photo-card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      display: flex;
-      flex-direction: column;
+      transition: transform 0.2s;
     }
-    .card:hover {
+
+    .photo-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
     }
-    .card img {
+
+    .photo-card img {
       width: 100%;
-      height: 200px;
+      height: 250px;
       object-fit: cover;
-      cursor: pointer;
+      display: block;
+      border-bottom: 1px solid #eee;
+      filter: blur(20px);
+      transition: filter 0.5s ease;
     }
-    .card .content {
-      padding: 15px;
-      flex: 1;
+
+    .photo-card img.loaded {
+      filter: blur(0);
     }
-    .card p {
-      margin: 0;
+
+    .photo-info {
+      padding: 12px;
+    }
+
+    .photo-info p {
+      margin: 0 0 10px;
       font-size: 0.95rem;
       color: #374151;
     }
-    .card .actions {
-      padding: 10px 15px;
-      text-align: right;
-    }
-    .card button {
+
+    .photo-info a {
+      display: inline-block;
+      text-decoration: none;
       background: #4f46e5;
       color: white;
-      border: none;
-      padding: 8px 12px;
+      padding: 8px 14px;
       border-radius: 6px;
-      cursor: pointer;
       font-size: 0.9rem;
-      transition: background 0.2s ease;
+      transition: background 0.2s;
     }
-    .card button:hover {
+
+    .photo-info a:hover {
       background: #3730a3;
     }
 
-    /* Lightbox */
-    .lightbox {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .lightbox img {
-      max-width: 90%;
-      max-height: 80%;
-      border-radius: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-    }
-    .lightbox span {
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      font-size: 2rem;
-      color: white;
-      cursor: pointer;
-    }
-
-    /* Mobile tweaks */
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.5rem;
-      }
-      .card img {
-        height: 160px;
-      }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      color: #6b7280;
+      background: #f3f4f6;
     }
   </style>
 </head>
 <body>
   <header>
     <h1>CastroGallery</h1>
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="Search photos...">
+    <div class="search-container">
+      <input type="text" id="search" placeholder="Search photos...">
     </div>
   </header>
 
-  <main>
-    <div class="gallery" id="gallery"></div>
+  <main class="gallery" id="gallery">
+    <!-- Photos will be injected here dynamically -->
   </main>
 
-  <!-- Lightbox -->
-  <div class="lightbox" id="lightbox">
-    <span onclick="closeLightbox()">&times;</span>
-    <img id="lightbox-img" src="">
-  </div>
+  <footer>
+    © 2025 CastroGallery. All rights reserved.
+  </footer>
 
   <script>
-    async function loadPhotos() {
-      try {
-        const response = await fetch("photos.json");
-        const photos = await response.json();
-        renderGallery(photos);
-      } catch (error) {
-        console.error("Error loading photos:", error);
-      }
-    }
+    const gallery = document.getElementById("gallery");
 
-    function renderGallery(photos) {
-      const gallery = document.getElementById("gallery");
-      gallery.innerHTML = "";
-      photos.forEach(photo => {
-        const card = document.createElement("div");
-        card.classList.add("card");
-        card.innerHTML = `
-          <img src="${photo.url}" alt="Photo" onclick="openLightbox('${photo.url}')">
-          <div class="content">
-            <p>${photo.description}</p>
-          </div>
-          <div class="actions">
-            <a href="${photo.url}" download>
-              <button>Download</button>
-            </a>
-          </div>
-        `;
-        gallery.appendChild(card);
+    // ✅ Load photos from JSON file
+    fetch("photos.json")
+      .then(response => response.json())
+      .then(data => {
+        gallery.innerHTML = "";
+        data.forEach(photo => {
+          const card = document.createElement("div");
+          card.className = "photo-card";
+          card.dataset.desc = photo.description.toLowerCase();
+
+          card.innerHTML = `
+            <img src="${photo.url}" data-src="${photo.url}" alt="${photo.description}" loading="lazy">
+            <div class="photo-info">
+              <p>${photo.description}</p>
+              <a href="${photo.url}" download>Download</a>
+            </div>
+          `;
+
+          // Blur effect until fully loaded
+          const img = card.querySelector("img");
+          img.addEventListener("load", () => img.classList.add("loaded"));
+          gallery.appendChild(card);
+        });
+      })
+      .catch(err => {
+        gallery.innerHTML = "<p style='color:red;text-align:center;'>Error loading photos.json</p>";
+        console.error(err);
       });
 
-      // Search functionality
-      const searchInput = document.getElementById("searchInput");
-      searchInput.addEventListener("input", function() {
-        const query = this.value.toLowerCase();
-        const filtered = photos.filter(p => 
-          p.description.toLowerCase().includes(query)
-        );
-        renderGallery(filtered);
+    // ✅ Search filter
+    document.getElementById("search").addEventListener("input", function () {
+      const query = this.value.toLowerCase();
+      const cards = document.querySelectorAll(".photo-card");
+      cards.forEach(card => {
+        const desc = card.dataset.desc;
+        card.style.display = desc.includes(query) ? "block" : "none";
       });
-    }
-
-    function openLightbox(src) {
-      const lightbox = document.getElementById("lightbox");
-      const lightboxImg = document.getElementById("lightbox-img");
-      lightboxImg.src = src;
-      lightbox.style.display = "flex";
-    }
-
-    function closeLightbox() {
-      document.getElementById("lightbox").style.display = "none";
-    }
-
-    loadPhotos();
+    });
   </script>
 </body>
 </html>
