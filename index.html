@@ -2,156 +2,200 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CastroGallery</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #f0f4f8, #e0e7ff);
-      color: #333;
+      background: #f9fafb;
+      color: #111827;
     }
-
     header {
-      background: #4f46e5;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
       color: white;
+      padding: 20px;
       text-align: center;
-      padding: 20px 10px;
-      font-size: 2rem;
-      font-weight: bold;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-
-    #gallery {
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    .search-bar {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+    }
+    .search-bar input {
+      width: 80%;
+      max-width: 500px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+    main {
+      padding: 20px;
+    }
+    .gallery {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 20px;
-      padding: 30px;
-      max-width: 1400px;
-      margin: auto;
     }
-
     .card {
       background: white;
-      border-radius: 15px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       overflow: hidden;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
     }
-
     .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
     }
-
     .card img {
       width: 100%;
-      height: 220px;
+      height: 200px;
       object-fit: cover;
       cursor: pointer;
-      transition: transform 0.3s ease;
     }
-
-    .card img:hover {
-      transform: scale(1.05);
+    .card .content {
+      padding: 15px;
+      flex: 1;
     }
-
     .card p {
-      margin: 10px;
-      font-size: 1rem;
+      margin: 0;
+      font-size: 0.95rem;
+      color: #374151;
     }
-
-    .download-btn {
-      display: inline-block;
-      margin: 0 10px 15px 10px;
-      padding: 8px 14px;
+    .card .actions {
+      padding: 10px 15px;
+      text-align: right;
+    }
+    .card button {
       background: #4f46e5;
       color: white;
-      text-decoration: none;
-      border-radius: 8px;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
       font-size: 0.9rem;
-      transition: background 0.3s ease;
+      transition: background 0.2s ease;
     }
-
-    .download-btn:hover {
+    .card button:hover {
       background: #3730a3;
     }
 
-    /* Lightbox popup */
-    #lightbox {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.8);
+    /* Lightbox */
+    .lightbox {
       display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
       justify-content: center;
       align-items: center;
       z-index: 1000;
     }
-
-    #lightbox img {
+    .lightbox img {
       max-width: 90%;
       max-height: 80%;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .lightbox span {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
     }
 
-    #lightbox:target {
-      display: flex;
+    /* Mobile tweaks */
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.5rem;
+      }
+      .card img {
+        height: 160px;
+      }
     }
   </style>
 </head>
 <body>
-  <header>CastroGallery</header>
+  <header>
+    <h1>CastroGallery</h1>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search photos...">
+    </div>
+  </header>
 
-  <div id="gallery"></div>
+  <main>
+    <div class="gallery" id="gallery"></div>
+  </main>
 
   <!-- Lightbox -->
-  <div id="lightbox">
-    <img id="lightbox-img" src="" alt="Full view">
+  <div class="lightbox" id="lightbox">
+    <span onclick="closeLightbox()">&times;</span>
+    <img id="lightbox-img" src="">
   </div>
 
   <script>
-    // Load JSON
-    fetch("photos.json")
-      .then(res => res.json())
-      .then(data => {
-        let gallery = document.getElementById("gallery");
+    async function loadPhotos() {
+      try {
+        const response = await fetch("photos.json");
+        const photos = await response.json();
+        renderGallery(photos);
+      } catch (error) {
+        console.error("Error loading photos:", error);
+      }
+    }
 
-        data.forEach(item => {
-          let card = document.createElement("div");
-          card.className = "card";
-
-          let img = document.createElement("img");
-          img.src = item.url;
-          img.alt = item.description;
-
-          // Lightbox click
-          img.addEventListener("click", () => {
-            document.getElementById("lightbox").style.display = "flex";
-            document.getElementById("lightbox-img").src = item.url;
-          });
-
-          let desc = document.createElement("p");
-          desc.textContent = item.description;
-
-          let downloadBtn = document.createElement("a");
-          downloadBtn.href = item.url;
-          downloadBtn.download = item.url.split("/").pop();
-          downloadBtn.className = "download-btn";
-          downloadBtn.textContent = "⬇ Download";
-
-          card.appendChild(img);
-          card.appendChild(desc);
-          card.appendChild(downloadBtn);
-
-          gallery.appendChild(card);
-        });
+    function renderGallery(photos) {
+      const gallery = document.getElementById("gallery");
+      gallery.innerHTML = "";
+      photos.forEach(photo => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.innerHTML = `
+          <img src="${photo.url}" alt="Photo" onclick="openLightbox('${photo.url}')">
+          <div class="content">
+            <p>${photo.description}</p>
+          </div>
+          <div class="actions">
+            <a href="${photo.url}" download>
+              <button>Download</button>
+            </a>
+          </div>
+        `;
+        gallery.appendChild(card);
       });
 
-    // Close lightbox on click
-    document.getElementById("lightbox").addEventListener("click", () => {
+      // Search functionality
+      const searchInput = document.getElementById("searchInput");
+      searchInput.addEventListener("input", function() {
+        const query = this.value.toLowerCase();
+        const filtered = photos.filter(p => 
+          p.description.toLowerCase().includes(query)
+        );
+        renderGallery(filtered);
+      });
+    }
+
+    function openLightbox(src) {
+      const lightbox = document.getElementById("lightbox");
+      const lightboxImg = document.getElementById("lightbox-img");
+      lightboxImg.src = src;
+      lightbox.style.display = "flex";
+    }
+
+    function closeLightbox() {
       document.getElementById("lightbox").style.display = "none";
-    });
+    }
+
+    loadPhotos();
   </script>
 </body>
 </html>
