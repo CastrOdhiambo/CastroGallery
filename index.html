@@ -3,185 +3,155 @@
 <head>
   <meta charset="UTF-8">
   <title>CastroGallery</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
-      background: #f0f2f5;
+      padding: 0;
+      background: linear-gradient(135deg, #f0f4f8, #e0e7ff);
       color: #333;
     }
+
     header {
+      background: #4f46e5;
+      color: white;
       text-align: center;
-      padding: 40px 20px;
-      background: linear-gradient(135deg, #2c3e50, #34495e);
-      color: #fff;
+      padding: 20px 10px;
+      font-size: 2rem;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
-    header h1 { margin: 0; font-size: 2.5rem; }
-    header p { font-size: 1.1rem; margin-top: 10px; color: #ddd; }
-    .search-box {
-      text-align: center;
-      margin: 20px;
-    }
-    .search-box input {
-      padding: 10px 15px;
-      width: 300px;
-      max-width: 80%;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 14px;
-    }
+
     #gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 20px;
       padding: 30px;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: auto;
     }
+
     .card {
-      position: relative;
-      overflow: hidden;
+      background: white;
       border-radius: 15px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+    }
+
     .card img {
       width: 100%;
-      height: 200px;
+      height: 220px;
       object-fit: cover;
-      display: block;
-      transition: transform 0.4s ease;
+      cursor: pointer;
+      transition: transform 0.3s ease;
     }
-    .card:hover img {
-      transform: scale(1.1);
+
+    .card img:hover {
+      transform: scale(1.05);
     }
+
     .card p {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(0,0,0,0.5);
-      color: #fff;
-      margin: 0;
-      padding: 10px;
-      font-size: 0.9rem;
-      text-align: center;
+      margin: 10px;
+      font-size: 1rem;
     }
-    /* Lightbox */
+
+    .download-btn {
+      display: inline-block;
+      margin: 0 10px 15px 10px;
+      padding: 8px 14px;
+      background: #4f46e5;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      transition: background 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background: #3730a3;
+    }
+
+    /* Lightbox popup */
     #lightbox {
-      display: none;
       position: fixed;
-      z-index: 1000;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.9);
+      background: rgba(0,0,0,0.8);
+      display: none;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
-      color: #fff;
+      z-index: 1000;
     }
+
     #lightbox img {
       max-width: 90%;
-      max-height: 70%;
-      border-radius: 10px;
+      max-height: 80%;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
     }
-    #lightbox p { margin-top: 15px; font-size: 1.1rem; }
-    .nav-btn {
-      position: absolute;
-      top: 50%;
-      font-size: 2rem;
-      color: #fff;
-      cursor: pointer;
-      user-select: none;
-      padding: 10px;
-    }
-    .prev { left: 20px; }
-    .next { right: 20px; }
-    .close {
-      position: absolute;
-      top: 20px; right: 30px;
-      font-size: 2rem;
-      cursor: pointer;
+
+    #lightbox:target {
+      display: flex;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>CastroGallery</h1>
-    <p>My Modern Photo Album</p>
-  </header>
-
-  <div class="search-box">
-    <input type="text" id="search" placeholder="Search photos...">
-  </div>
+  <header>CastroGallery</header>
 
   <div id="gallery"></div>
 
   <!-- Lightbox -->
   <div id="lightbox">
-    <span class="close" onclick="closeLightbox()">✖</span>
-    <span class="nav-btn prev" onclick="prevPhoto()">❮</span>
-    <span class="nav-btn next" onclick="nextPhoto()">❯</span>
-    <img id="lightbox-img" src="" alt="">
-    <p id="lightbox-desc"></p>
+    <img id="lightbox-img" src="" alt="Full view">
   </div>
 
   <script>
-    let photos = [];
-    let currentIndex = 0;
-
+    // Load JSON
     fetch("photos.json")
       .then(res => res.json())
       .then(data => {
-        photos = data;
-        displayGallery(photos);
+        let gallery = document.getElementById("gallery");
+
+        data.forEach(item => {
+          let card = document.createElement("div");
+          card.className = "card";
+
+          let img = document.createElement("img");
+          img.src = item.url;
+          img.alt = item.description;
+
+          // Lightbox click
+          img.addEventListener("click", () => {
+            document.getElementById("lightbox").style.display = "flex";
+            document.getElementById("lightbox-img").src = item.url;
+          });
+
+          let desc = document.createElement("p");
+          desc.textContent = item.description;
+
+          let downloadBtn = document.createElement("a");
+          downloadBtn.href = item.url;
+          downloadBtn.download = item.url.split("/").pop();
+          downloadBtn.className = "download-btn";
+          downloadBtn.textContent = "⬇ Download";
+
+          card.appendChild(img);
+          card.appendChild(desc);
+          card.appendChild(downloadBtn);
+
+          gallery.appendChild(card);
+        });
       });
 
-    function displayGallery(items) {
-      let gallery = document.getElementById("gallery");
-      gallery.innerHTML = "";
-      items.forEach((item, index) => {
-        let card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<img src="${item.url}" alt="${item.description}">
-                          <p>${item.description}</p>`;
-        card.onclick = () => openLightbox(index);
-        gallery.appendChild(card);
-      });
-    }
-
-    // Search filter
-    document.getElementById("search").addEventListener("input", function() {
-      let term = this.value.toLowerCase();
-      let filtered = photos.filter(p => p.description.toLowerCase().includes(term));
-      displayGallery(filtered);
-    });
-
-    // Lightbox functions
-    function openLightbox(index) {
-      currentIndex = index;
-      document.getElementById("lightbox").style.display = "flex";
-      updateLightbox();
-    }
-    function closeLightbox() {
+    // Close lightbox on click
+    document.getElementById("lightbox").addEventListener("click", () => {
       document.getElementById("lightbox").style.display = "none";
-    }
-    function updateLightbox() {
-      let photo = photos[currentIndex];
-      document.getElementById("lightbox-img").src = photo.url;
-      document.getElementById("lightbox-desc").textContent = photo.description;
-    }
-    function prevPhoto() {
-      currentIndex = (currentIndex - 1 + photos.length) % photos.length;
-      updateLightbox();
-    }
-    function nextPhoto() {
-      currentIndex = (currentIndex + 1) % photos.length;
-      updateLightbox();
-    }
+    });
   </script>
 </body>
 </html>
