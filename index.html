@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CastroGallery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #f0f4f8, #d9e4ec);
+      color: #333;
+    }
+    header {
+      text-align: center;
+      padding: 40px 20px;
+      background: #2c3e50;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      font-weight: 600;
+    }
+    header p {
+      font-size: 1.2rem;
+      margin-top: 10px;
+      color: #ddd;
+    }
+    #gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .card {
+      background: #fff;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .card p {
+      padding: 15px;
+      margin: 0;
+      font-size: 0.95rem;
+      color: #555;
+      text-align: center;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CastroGallery</h1>
+    <p>My Photo Album</p>
+  </header>
+
+  <div id="gallery"></div>
+
+  <footer>
+    &copy; <span id="year"></span> CastroGallery | All rights reserved
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    fetch("photos.json")
+      .then(response => response.json())
+      .then(data => {
+        let gallery = document.getElementById("gallery");
+        data.forEach(item => {
+          let card = document.createElement("div");
+          card.className = "card";
+
+          let img = document.createElement("img");
+          img.src = item.url;
+          img.alt = item.description;
+
+          let desc = document.createElement("p");
+          desc.textContent = item.description;
+
+          card.appendChild(img);
+          card.appendChild(desc);
+          gallery.appendChild(card);
+        });
+      })
+      .catch(err => {
+        document.getElementById("gallery").innerHTML = "<p style='color:red; text-align:center;'>Error loading photos.</p>";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
