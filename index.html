@@ -6,15 +6,15 @@
   <title>CastroGallery</title>
 
   <!-- SEO Meta -->
-  <meta name="description" content="CastroGallery - Explore my personal photo gallery with downloadable images.">
+  <meta name="description" content="CastroGallery - Explore my personal photo gallery with fullscreen view and downloadable images.">
   <meta name="keywords" content="photo gallery, images, photography, CastroGallery, downloads">
-  <meta name="author" content="Your Name">
+  <meta name="author" content="Castro Odhiambo">
 
   <!-- Open Graph (Facebook, WhatsApp) -->
   <meta property="og:title" content="CastroGallery">
   <meta property="og:description" content="Explore my collection of photos, available for download.">
   <meta property="og:image" content="photos/cover.jpg">
-  <meta property="og:url" content="https://yourwebsite.github.io/">
+  <meta property="og:url" content="https://https://castrodhiambo.github.io/CastroGallery//">
   <meta property="og:type" content="website">
 
   <!-- Twitter Card -->
@@ -75,6 +75,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       overflow: hidden;
       transition: transform 0.2s;
+      cursor: pointer;
     }
 
     .photo-card:hover {
@@ -100,7 +101,7 @@
     }
 
     .photo-info p {
-      margin: 0 0 10px;
+      margin: 0;
       font-size: 0.95rem;
       color: #374151;
     }
@@ -127,6 +128,96 @@
       color: #6b7280;
       background: #f3f4f6;
     }
+
+    /* Fullscreen Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      padding-top: 60px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.9);
+    }
+
+    .modal-content {
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 90%;
+    }
+
+    .modal-content img {
+      max-width: 100%;
+      max-height: 80vh;
+      margin-bottom: 15px;
+      border-radius: 8px;
+    }
+
+    .modal-description {
+      color: white;
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .modal a {
+      text-decoration: none;
+      background: #4f46e5;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .modal a:hover {
+      background: #3730a3;
+    }
+
+    .close, .prev, .next {
+      color: white;
+      position: absolute;
+      top: 50%;
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 12px;
+      user-select: none;
+      transition: 0.3s;
+    }
+
+    .close {
+      top: 20px;
+      right: 30px;
+      font-size: 2.5rem;
+    }
+
+    .prev {
+      left: 10px;
+      transform: translateY(-50%);
+    }
+
+    .next {
+      right: 10px;
+      transform: translateY(-50%);
+    }
+
+    .prev:hover, .next:hover, .close:hover {
+      color: #ccc;
+    }
+
+    @media (max-width: 768px) {
+      .photo-card img {
+        height: 180px;
+      }
+      .modal-description {
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -138,54 +229,108 @@
   </header>
 
   <main class="gallery" id="gallery">
-    <!-- Photos will be injected here dynamically -->
+    <!-- Photos injected dynamically -->
   </main>
 
   <footer>
     © 2025 CastroGallery. All rights reserved.
   </footer>
 
+  <!-- Fullscreen Modal -->
+  <div id="photoModal" class="modal">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <span class="prev" onclick="changePhoto(-1)">&#10094;</span>
+    <span class="next" onclick="changePhoto(1)">&#10095;</span>
+    <div class="modal-content">
+      <img id="modalImage" src="" alt="">
+      <div class="modal-description" id="modalDesc"></div>
+      <a id="modalDownload" href="#" download>Download</a>
+    </div>
+  </div>
+
   <script>
     const gallery = document.getElementById("gallery");
+    const modal = document.getElementById("photoModal");
+    const modalImg = document.getElementById("modalImage");
+    const modalDesc = document.getElementById("modalDesc");
+    const modalDownload = document.getElementById("modalDownload");
 
-    // ✅ Load photos from JSON file
+    let photos = [];
+    let currentIndex = 0;
+
+    // ✅ Load photos from JSON
     fetch("photos.json")
       .then(response => response.json())
       .then(data => {
-        gallery.innerHTML = "";
-        data.forEach(photo => {
-          const card = document.createElement("div");
-          card.className = "photo-card";
-          card.dataset.desc = photo.description.toLowerCase();
-
-          card.innerHTML = `
-            <img src="${photo.url}" data-src="${photo.url}" alt="${photo.description}" loading="lazy">
-            <div class="photo-info">
-              <p>${photo.description}</p>
-              <a href="${photo.url}" download>Download</a>
-            </div>
-          `;
-
-          // Blur effect until fully loaded
-          const img = card.querySelector("img");
-          img.addEventListener("load", () => img.classList.add("loaded"));
-          gallery.appendChild(card);
-        });
+        photos = data;
+        renderGallery(photos);
       })
       .catch(err => {
         gallery.innerHTML = "<p style='color:red;text-align:center;'>Error loading photos.json</p>";
         console.error(err);
       });
 
+    function renderGallery(data) {
+      gallery.innerHTML = "";
+      data.forEach((photo, index) => {
+        const card = document.createElement("div");
+        card.className = "photo-card";
+        card.dataset.desc = photo.description.toLowerCase();
+
+        card.innerHTML = `
+          <img src="${photo.url}" alt="${photo.description}" loading="lazy">
+          <div class="photo-info">
+            <p>${photo.description}</p>
+            <a href="${photo.url}" download>Download</a>
+          </div>
+        `;
+
+        // Blur effect load
+        const img = card.querySelector("img");
+        img.addEventListener("load", () => img.classList.add("loaded"));
+
+        // Click opens modal
+        img.addEventListener("click", () => openModal(index));
+
+        gallery.appendChild(card);
+      });
+    }
+
     // ✅ Search filter
     document.getElementById("search").addEventListener("input", function () {
       const query = this.value.toLowerCase();
-      const cards = document.querySelectorAll(".photo-card");
-      cards.forEach(card => {
-        const desc = card.dataset.desc;
-        card.style.display = desc.includes(query) ? "block" : "none";
-      });
+      const filtered = photos.filter(p => p.description.toLowerCase().includes(query));
+      renderGallery(filtered);
     });
+
+    // ✅ Modal functions
+    function openModal(index) {
+      currentIndex = index;
+      modal.style.display = "block";
+      showPhoto(currentIndex);
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    function changePhoto(step) {
+      currentIndex = (currentIndex + step + photos.length) % photos.length;
+      showPhoto(currentIndex);
+    }
+
+    function showPhoto(index) {
+      modalImg.src = photos[index].url;
+      modalDesc.textContent = photos[index].description;
+      modalDownload.href = photos[index].url;
+    }
+
+    // Close modal on outside click
+    window.onclick = function(event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    }
   </script>
 </body>
 </html>
